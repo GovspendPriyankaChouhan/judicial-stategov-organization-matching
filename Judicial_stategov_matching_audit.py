@@ -9,7 +9,7 @@ For each agency Name in your Excel sheet, this:
      "Judicial" -> "Judicia", "Commission" -> "Commiss") so short/abbreviated
      database forms still get caught.
 
-  2. Tries ONE keyword at a time against mai.MasterAgency:
+  2. Tries ONE keyword at a time against organization_master:
 
        SELECT ComputedId, OrganizationId, Name, Address1, City,
               StateAbbreviation, Zip, Phone, Website
@@ -21,7 +21,7 @@ For each agency Name in your Excel sheet, this:
      stop after just one keyword, since the real database record might not
      share every word with the input name. Only after every candidate
      keyword has been tried with no verified match does it report
-     "Not Found". Same approach for dbo.organizations (AccountName).
+     "Not Found". Same approach for organization_records (AccountName).
 
   3. Name verification: a SQL hit only counts as a real match if the
      candidate's Name/AccountName actually corresponds to the input name,
