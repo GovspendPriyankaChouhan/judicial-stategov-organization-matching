@@ -13,7 +13,7 @@ For each agency Name in your Excel sheet, this:
 
        SELECT ComputedId, OrganizationId, Name, Address1, City,
               StateAbbreviation, Zip, Phone, Website
-       FROM mai.MasterAgency
+       FROM organization_master
        WHERE StateAbbreviation = ? AND SoftDelete = 0 AND Name LIKE '%kw%'
 
      If that keyword returns nothing that verifies as the same agency (see
@@ -57,7 +57,7 @@ Setup
 -----
 pip install pandas pyodbc python-dotenv openpyxl
 
-.env file needs:
+password.env file needs:
     SQL_CONN_STRING=<your pyodbc connection string>
 (or fill in SQL_SERVER / SQL_DATABASE / etc. directly below instead)
 
@@ -73,10 +73,10 @@ or pass --input / --sheet on the command line.
 
 Usage
 -----
-    python agency_lookup.py
+    python Judicial_stategov_matching_audit.py
         # uses the defaults set below
 
-    python agency_lookup.py --input "C:\\path\\to\\file.xlsx" --sheet "Sheet1"
+    python Judicial_stategov_matching_audit.py --input "C:\path\to\file.xlsx" --sheet "Sheet1"
 """
 
 import argparse
@@ -107,7 +107,7 @@ SQL_PASSWORD = os.getenv("SQL_PASSWORD")
 
 # Update these to match your actual file / sheet name, or pass
 # --input / --sheet on the command line instead.
-DEFAULT_INPUT_PATH = r"C:\Users\lenovo\PycharmProjects\mai_Org_matching\Deleted - contacts.xlsx"
+DEFAULT_INPUT_PATH = "input.xlsx"
 DEFAULT_SHEET_NAME = "Sheet1"
 
 MIN_KEYWORD_LENGTH = 3     # ignore words shorter than this as keyword candidates
@@ -289,7 +289,7 @@ def search_master_agency(conn, term, state):
     query = """
         SELECT ComputedId, OrganizationId, Name, Address1, City,
                StateAbbreviation, Zip, Phone, Website
-        FROM mai.MasterAgency
+        FROM organization_master
         WHERE StateAbbreviation = ? AND SoftDelete = 0 AND Name LIKE ?
     """
     return pd.read_sql(query, conn, params=[state, f"%{term}%"])
@@ -299,7 +299,7 @@ def search_organizations(conn, term, state):
     query = """
         SELECT Id, ComputedId, AccountName, Address1, City, State,
                PhoneNumber, WebSite
-        FROM dbo.organizations
+        FROM organization_records
         WHERE SoftDelete = 0 AND State = ? AND AccountName LIKE ?
     """
     return pd.read_sql(query, conn, params=[state, f"%{term}%"])
@@ -320,7 +320,7 @@ def _fmt_id(x):
 
 def confidence_label(score):
     """Converts a numeric match score into a plain-English confidence label:
-    High = essentially an exact/correct match, Medium = matched but not
+    High = all distinctive tokens in the shorter name matched, Medium = matched but not
     word-for-word (worth a glance), Low = nothing matched."""
     try:
         s = float(score)
